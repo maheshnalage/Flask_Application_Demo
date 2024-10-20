@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Regex Matching Tool</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            color: #00FFFF; /* Neon blue text */
+            height: 100vh; /* Full viewport height */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden; /* Prevent scrolling */
+            background-color: black; /* Fallback background color */
+        }
+
+        /* Background GIF */
+        .bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1; /* Make sure it is behind the content */
+            background-image: url("{{ url_for('static', filename='images/background.gif') }}"); /* Load GIF */
+            background-size: cover; /* Cover the entire background */
+            filter: blur(2px); /* Optional blur effect */
+        }
+
+        .container {
+            text-align: center;
+            padding: 50px;
+            background-color: rgba(0, 0, 0, 0.7); /* Dark overlay for readability */
+            border-radius: 10px;
+            box-shadow: 0 0 20px #00FFFF; /* Neon glow effect */
+        }
+
+        input, button {
+            padding: 10px;
+            margin: 5px;
+            font-size: 16px;
+            border: 2px solid #00FFFF; /* Neon border */
+            background-color: black; /* Black background for input fields */
+            color: #00FFFF; /* Neon blue text for input fields */
+            transition: all 0.3s ease; /* Smooth transition for input and button */
+        }
+
+        input:focus, button:hover {
+            background-color: #00FFFF; /* Change background color on focus/hover */
+            color: black; /* Change text color on focus/hover */
+            cursor: pointer; /* Change cursor to pointer on hover */
+        }
+
+        #message {
+            margin-top: 20px;
+            font-weight: bold; /* Make message bold */
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <div class="bg"></div> <!-- Background GIF -->
+    <div class="container">
+        <h1>Regex Matching Tool</h1>
+        <form id="regexForm" action="/results" method="post" onsubmit="handleRegexFormSubmission(event)">
+            <input type="text" name="test_string" id="testString" placeholder="Enter Test String" required>
+            <input type="text" name="regex" id="regexPattern" placeholder="Enter Regular Expression" required>
+            <button type="submit">Match</button>
+        </form>
+        <div id="regexMessage"></div> <!-- Display message here -->
+
+        <h2>Email Validation</h2>
+        <form id="emailForm" action="/validate_email" method="post" onsubmit="handleEmailValidation(event)">
+            <input type="text" name="email" id="emailInput" placeholder="Enter Email Address" required>
+            <button type="submit">Validate</button>
+        </form>
+        <div id="emailMessage"></div> <!-- Display email validation message here -->
+    </div>
+
+    <script>
+        function playVoiceMessage(message) {
+            const msg = new SpeechSynthesisUtterance(message);
+            window.speechSynthesis.speak(msg);
+        }
+
+        function handleRegexFormSubmission(event) {
+            event.preventDefault(); // Prevent default form submission
+
+            const testString = document.getElementById("testString").value;
+            const regexPattern = document.getElementById("regexPattern").value;
+            const regex = new RegExp(regexPattern);
+            const result = testString.match(regex);
+
+            const messageElement = document.getElementById("regexMessage");
+            if (result) {
+                const successMessage = "Regex matched!";
+                playVoiceMessage(successMessage);
+                messageElement.textContent = successMessage;
+                messageElement.style.color = 'green';
+                setTimeout(() => {
+                    messageElement.textContent = ""; // Clear message after 15 seconds
+                }, 15000);
+            } else {
+                const failureMessage = "No match found!";
+                playVoiceMessage(failureMessage);
+                messageElement.textContent = failureMessage;
+                messageElement.style.color = 'red';
+                setTimeout(() => {
+                    messageElement.textContent = ""; // Clear message after 15 seconds
+                }, 15000);
+            }
+        }
+
+        function handleEmailValidation(event) {
+            event.preventDefault(); // Prevent default form submission
+
+            const emailInput = document.getElementById("emailInput").value;
+            const emailPattern = /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/;
+
+            const emailMessageElement = document.getElementById("emailMessage");
+            if (emailPattern.test(emailInput)) {
+                const successMessage = "Valid email address!";
+                playVoiceMessage(successMessage);
+                emailMessageElement.textContent = successMessage;
+                emailMessageElement.style.color = 'green';
+                setTimeout(() => {
+                    emailMessageElement.textContent = ""; // Clear message after 15 seconds
+                }, 15000);
+            } else {
+                const errorMessage = "Invalid email address!";
+                playVoiceMessage(errorMessage);
+                emailMessageElement.textContent = errorMessage;
+                emailMessageElement.style.color = 'red';
+                setTimeout(() => {
+                    emailMessageElement.textContent = ""; // Clear message after 15 seconds
+                }, 15000);
+            }
+        }
+    </script>
+</body>
+</html>
