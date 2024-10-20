@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Regex Matching Tool</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            color: #00FFFF; /* Neon blue text */
+            height: 100vh; /* Full viewport height */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: black; /* Fallback background color */
+            background-size: cover;
+            background-position: center;
+            overflow: hidden; /* Prevent scrolling */
+        }
+
+        /* Background GIF */
+        .bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1; /* Make sure it is behind the content */
+            background-image: url("{{ url_for('static', filename='images/background.gif') }}"); /* Load GIF */
+            background-size: cover; /* Cover the entire background */
+            filter: blur(2px); /* Optional blur effect */
+        }
+
+        .container {
+            text-align: center;
+            padding: 30px;
+            background-color: rgba(0, 0, 0, 0.7); /* Dark overlay for readability */
+            border-radius: 10px;
+            box-shadow: 0 0 20px #00FFFF; /* Neon glow effect */
+            width: 60%; /* Take 60% of screen width */
+            max-width: 700px; /* Max width of the form */
+            margin: auto; /* Center the form */
+        }
+
+        .container h1, h2 {
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #00FFFF; /* Neon blue */
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        textarea, input, button {
+            padding: 10px;
+            margin: 10px;
+            font-size: 18px;
+            border: 2px solid #00FFFF; /* Neon border */
+            background-color: black; /* Black background for input fields */
+            color: #00FFFF; /* Neon blue text for input fields */
+            border-radius: 5px;
+            transition: all 0.3s ease; /* Smooth transition for input and button */
+            width: 100%;
+            max-width: 500px; /* Set max width for input fields */
+        }
+
+        textarea {
+            min-height: 100px;
+            resize: vertical; /* Allow resizing vertically */
+        }
+
+        input:focus, textarea:focus, button:hover {
+            background-color: #00FFFF; /* Change background color on focus/hover */
+            color: black; /* Change text color on focus/hover */
+            cursor: pointer; /* Change cursor to pointer on hover */
+        }
+
+        button {
+            width: 50%;
+            font-weight: bold;
+            background-color: #00FFFF; /* Neon button background */
+            color: black; /* Black text on button */
+            border-radius: 5px;
+        }
+
+        #message {
+            margin-top: 20px;
+            font-weight: bold;
+            color: red;
+        }
+
+        #results {
+            margin-top: 20px;
+            font-size: 18px;
+            color: #00FFFF; /* Neon blue for result */
+        }
+
+    </style>
+</head>
+<body>
+    <div class="bg"></div> <!-- Background GIF -->
+    <div class="container">
+        <h1>Regex Matching Tool</h1>
+        <form id="regexForm" action="/results" method="post" onsubmit="handleRegexFormSubmission(event)">
+            <textarea name="test_string" id="testString" placeholder="Enter Test String" required></textarea>
+            <input type="text" name="regex" id="regexPattern" placeholder="Enter Regular Expression" required>
+            <button type="submit">Match</button>
+        </form>
+        <div id="regexMessage"></div> <!-- Display message here -->
+        <div id="results"></div> <!-- Display regex match results here -->
+
+        <h2>Email Validation</h2>
+        <form id="emailForm" action="/validate_email" method="post" onsubmit="handleEmailValidation(event)">
+            <input type="text" name="email" id="emailInput" placeholder="Enter Email Address" required>
+            <button type="submit">Validate</button>
+        </form>
+        <div id="emailMessage"></div> <!-- Display email validation message here -->
+    </div>
+
+    <script>
+        function playVoiceMessage(message) {
+            const msg = new SpeechSynthesisUtterance(message);
+            window.speechSynthesis.speak(msg);
+        }
+
+        function handleRegexFormSubmission(event) {
+            event.preventDefault(); // Prevent default form submission
+
+            const testString = document.getElementById("testString").value;
+            const regexPattern = document.getElementById("regexPattern").value;
+            const regex = new RegExp(regexPattern, 'g'); // Global match for multiple occurrences
+            const result = testString.match(regex);
+
+            const messageElement = document.getElementById("regexMessage");
+            const resultElement = document.getElementById("results");
+
+            if (result) {
+                const matchCount = result.length; // Count the number of matches
+                const successMessage = `Regex matched! Total matches: ${matchCount}`;
+                const matchResult = `Matches: ${result.join(", ")}`; // Display all matches
+                playVoiceMessage(successMessage);
+                messageElement.textContent = successMessage;
+                messageElement.style.color = 'green';
+                resultElement.textContent = matchResult;
+                setTimeout(() => {
+                    messageElement.textContent = ""; // Clear message after 15 seconds
+                    resultElement.textContent = "";  // Clear results after 15 seconds
+                }, 15000);
+            } else {
+                const failureMessage = "No match found!";
+                playVoiceMessage(failureMessage);
+                messageElement.textContent = failureMessage;
+                messageElement.style.color = 'red';
+                resultElement.textContent = "";
+                setTimeout(() => {
+                    messageElement.textContent = ""; // Clear message after 15 seconds
+                }, 15000);
+            }
+        }
+
+        function handleEmailValidation(event) {
+            event.preventDefault(); // Prevent default form submission
+
+            const emailInput = document.getElementById("emailInput").value;
+            const emailPattern = /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/;
+
+            const emailMessageElement = document.getElementById("emailMessage");
+            if (emailPattern.test(emailInput)) {
+                const successMessage = "Valid email address!";
+                playVoiceMessage(successMessage);
+                emailMessageElement.textContent = successMessage;
+                emailMessageElement.style.color = 'green';
+                setTimeout(() => {
+                    emailMessageElement.textContent = ""; // Clear message after 15 seconds
+                }, 15000);
+            } else {
+                const errorMessage = "Invalid email address!";
+                playVoiceMessage(errorMessage);
+                emailMessageElement.textContent = errorMessage;
+                emailMessageElement.style.color = 'red';
+                setTimeout(() => {
+                    emailMessageElement.textContent = ""; // Clear message after 15 seconds
+                }, 15000);
+            }
+        }
+    </script>
+</body>
+</html>
